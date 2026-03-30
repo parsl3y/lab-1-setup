@@ -1,5 +1,8 @@
 name: CI/CD Pipeline
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [main]
@@ -20,19 +23,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
-          # Тепер файл у корені, тому шлях стандартний:
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: my-app/package-lock.json
 
       - name: Install dependencies
-        # npm ci автоматично шукає package-lock.json у поточній папці
+        working-directory: ./my-app
         run: npm ci
 
       - name: Run Lint
+        working-directory: ./my-app
         run: npm run lint
 
       - name: Run Unit Tests
+        working-directory: ./my-app
         run: npm run test
 
   build-and-publish:
@@ -66,8 +70,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          # Контекст "." означає поточну (кореневу) папку
-          context: .
+          context: ./my-app
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
