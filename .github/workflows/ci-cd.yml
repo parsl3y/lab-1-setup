@@ -11,7 +11,6 @@ permissions:
   packages: write
 
 jobs:
-  # Завдання 1: Перевірка коду (Lint & Test)
   quality-checks:
     runs-on: ubuntu-latest
     steps:
@@ -23,8 +22,11 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
+          # Тепер файл у корені, тому шлях стандартний:
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
+        # npm ci автоматично шукає package-lock.json у поточній папці
         run: npm ci
 
       - name: Run Lint
@@ -33,7 +35,6 @@ jobs:
       - name: Run Unit Tests
         run: npm run test
 
-  # Завдання 2: Збирання та публікація (Build & Push)
   build-and-publish:
     needs: quality-checks
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -65,6 +66,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          # Контекст "." означає поточну (кореневу) папку
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
