@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm' # Автоматичне кешування node_modules [12]
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -36,7 +36,6 @@ jobs:
   # Завдання 2: Збирання та публікація (Build & Push)
   build-and-publish:
     needs: quality-checks
-    # Публікуємо лише при злитті в main, а не для кожного PR 
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -53,7 +52,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -66,9 +65,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context:.
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max # Оптимізація кешування шарів 
+          cache-to: type=gha,mode=max
